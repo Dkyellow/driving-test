@@ -1,0 +1,70 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <title>Result</title>
+    <link rel="stylesheet" href="static\style.css" />
+    <link
+      rel="stylesheet"
+      href="{{ url_for('static', filename='style.css') }}"
+    />
+    <style>
+      * {
+        padding: 0;
+        margin: 0;
+        box-sizing: border-box;
+      }
+      body {
+        font-family: Arial, Helvetica, sans-serif;
+      }
+      nav {
+        background-color: rgb(241, 238, 250);
+        width: 100%;
+        height: 90px;
+        padding: 30px 30px;
+      }
+    </style>
+  </head>
+  <body>
+    {% if score < 22 %}
+    <nav style="background-color: rgb(253, 55, 55)">
+      <h1>Result: Failed</h1>
+      <span>You scored {{ score }} out of {{ total }}</span>
+      <span>percentange {{(score / total) * 100}} %</span>
+    </nav>
+    {% else %}
+    <nav style="background-color: rgb(2, 255, 78)">
+      <h1>Result: Passed</h1>
+      <span>You scored {{ score }} out of {{ total }}</span>
+      <span>percentange {{(score / total) * 100}} %</span>
+    </nav>
+    {% endif%}
+
+    <h1>Questions & Answers</h1>
+    <div class="res">
+      {% for result in results%}
+      <div class="question-item">
+        <p><span>Question :</span> {{result.question}}</p>
+        {% if result.image %}
+        <img
+          src="{{ url_for('static', filename='images/' + result.image) }}"
+          alt=""
+        />
+        {% endif %} {% if result.user_answer == result.correct_answer %}
+        <div class="answer" style="background-color: rgba(0, 216, 0, 0.295)">
+          <span>Your answer :</span> {{result.user_answer}}
+        </div>
+        {% else %}
+        <div class="answer" style="background-color: rgba(216, 0, 0, 0.295)">
+          <span>Your answer :</span> {{result.user_answer}}
+        </div>
+        {% endif %}
+        <div class="answer">
+          <span>Correct answer :</span> {{result.correct_answer}}
+        </div>
+      </div>
+      {% endfor %}
+
+      <a href="{{ url_for('index') }}" class="btn">Take another Test</a>
+    </div>
+  </body>
+</html>

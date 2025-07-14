@@ -1,0 +1,60 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <title>Online Test</title>
+
+    <link
+      rel="stylesheet"
+      href="{{ url_for('static', filename='style.css') }}"
+    />
+    <link rel="stylesheet" href="static\style.css" />
+    <style>
+      form {
+        padding: 30px 30px;
+      }
+      .question-item {
+        margin: 10px 0px;
+      }
+      form p {
+        margin: 10px 0px;
+      }
+      span {
+        font-weight: 600;
+      }
+    </style>
+  </head>
+  <body>
+    <nav>
+      <h1>Vasco Da Gama Online Test</h1>
+      <a href="{{ url_for('index') }}" class="btn">Change test</a>
+      <div class="link"></div>
+    </nav>
+
+    <form action="/submit" method="post" class="test">
+      {% for i, question in quiz_questions %}
+      <div class="question-item">
+        <p><span>Question {{i + 1}} : </span>{{ question.question }}</p>
+        {% if question.image %}
+        <img
+          src="{{ url_for('static', filename='images/' + question.image) }}"
+          alt="Diagram"
+        />
+        {% endif %} {% for option in question.options %}
+        <div class="answer">
+          <input
+            type="radio"
+            id="option_{{ loop.index }}"
+            name="question_{{ i }}"
+            value="{{ option }}"
+            required
+          />
+          <label for="option_{{ loop.index }}">{{ option }}</label><br />
+        </div>
+        {% endfor %}
+      </div>
+      {% endfor %}
+
+      <input type="submit" value="Submit" class="btn" />
+    </form>
+  </body>
+</html>
