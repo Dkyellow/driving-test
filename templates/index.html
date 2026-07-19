@@ -1,60 +1,121 @@
 <!DOCTYPE html>
-<html>
+<html lang="en">
   <head>
-    <title>Online Test</title>
-
-    <link
-      rel="stylesheet"
-      href="{{ url_for('static', filename='style.css') }}"
-    />
-    <link rel="stylesheet" href="static\style.css" />
-    <style>
-      form {
-        padding: 30px 30px;
-      }
-      .question-item {
-        margin: 10px 0px;
-      }
-      form p {
-        margin: 10px 0px;
-      }
-      span {
-        font-weight: 600;
-      }
-    </style>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Driving Test - Free Practice</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}" />
   </head>
   <body>
-    <nav>
-      <h1>Vasco Da Gama Online Test</h1>
-      <a href="{{ url_for('index') }}" class="btn">Change test</a>
-      <div class="link"></div>
-    </nav>
+    <a href="{{ url_for('index') }}" class="home-btn">
+      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg>
+      Home
+    </a>
 
-    <form action="/submit" method="post" class="test">
-      {% for i, question in quiz_questions %}
-      <div class="question-item">
-        <p><span>Question {{i + 1}} : </span>{{ question.question }}</p>
-        {% if question.image %}
-        <img
-          src="{{ url_for('static', filename='images/' + question.image) }}"
-          alt="Diagram"
-        />
-        {% endif %} {% for option in question.options %}
-        <div class="answer">
-          <input
-            type="radio"
-            id="option_{{ loop.index }}"
-            name="question_{{ i }}"
-            value="{{ option }}"
-            required
-          />
-          <label for="option_{{ loop.index }}">{{ option }}</label><br />
+    <div class="quiz-card">
+      <div class="quiz-header">
+        <div class="quiz-title">
+          <h1>Driving Test</h1>
+          <p>Free Practice Test</p>
+        </div>
+        <div class="quiz-progress-info">
+          <div class="progress-bar">
+            <div class="progress-fill" id="progressFill"></div>
+          </div>
+          <span class="progress-text" id="progressText">1/{{ total }}</span>
+        </div>
+        <div class="quiz-timer">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
+          <span id="timer">{{ time_limit // 60 }}:00</span>
+        </div>
+      </div>
+
+      <div class="quiz-divider"></div>
+
+      <form action="/submit" method="post" id="quizForm">
+        {% for i, question in quiz_questions %}
+        <div class="question-slide" id="question{{ i }}" {% if i != 0 %}style="display:none"{% endif %}>
+          <h2 class="question-label">Question {{ i + 1 }}</h2>
+          <p class="question-text">{{ question.question }}</p>
+
+          {% if question.image %}
+          <div class="question-image">
+            <img src="{{ url_for('static', filename='images/' + question.image) }}" alt="Question diagram" />
+          </div>
+          {% endif %}
+
+          <div class="options-list">
+            {% for option in question.options %}
+            <label class="option-item" for="q{{ i }}_opt{{ loop.index }}">
+              <input type="radio" id="q{{ i }}_opt{{ loop.index }}" name="question_{{ i }}" value="{{ option }}" />
+              <span class="radio-custom"></span>
+              <span class="option-text">{{ option }}</span>
+            </label>
+            {% endfor %}
+          </div>
         </div>
         {% endfor %}
-      </div>
-      {% endfor %}
 
-      <input type="submit" value="Submit" class="btn" />
-    </form>
+        <div class="quiz-navigation">
+          <button type="button" class="btn btn-prev" id="prevBtn" onclick="changeQuestion(-1)" disabled>
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="15 18 9 12 15 6"/></svg>
+            Previous
+          </button>
+          <button type="button" class="btn btn-next" id="nextBtn" onclick="changeQuestion(1)">
+            Next
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 18 15 12 9 6"/></svg>
+          </button>
+          <button type="submit" class="btn btn-submit" id="submitBtn" style="display:none">
+            Submit Test
+          </button>
+        </div>
+      </form>
+    </div>
+
+    <script>
+      const total = {{ total }};
+      let current = 0;
+      const timeLimit = {{ time_limit }};
+      let timeLeft = timeLimit;
+
+      function showQuestion(index) {
+        document.querySelectorAll('.question-slide').forEach((el, i) => {
+          el.style.display = i === index ? 'block' : 'none';
+        });
+        document.getElementById('prevBtn').disabled = index === 0;
+        if (index === total - 1) {
+          document.getElementById('nextBtn').style.display = 'none';
+          document.getElementById('submitBtn').style.display = 'inline-flex';
+        } else {
+          document.getElementById('nextBtn').style.display = 'inline-flex';
+          document.getElementById('submitBtn').style.display = 'none';
+        }
+        document.getElementById('progressFill').style.width = ((index + 1) / total * 100) + '%';
+        document.getElementById('progressText').textContent = (index + 1) + '/' + total;
+      }
+
+      function changeQuestion(dir) {
+        current += dir;
+        if (current < 0) current = 0;
+        if (current >= total) current = total - 1;
+        showQuestion(current);
+      }
+
+      function updateTimer() {
+        const mins = Math.floor(timeLeft / 60);
+        const secs = timeLeft % 60;
+        document.getElementById('timer').textContent =
+          mins.toString().padStart(2, '0') + ':' + secs.toString().padStart(2, '0');
+        if (timeLeft <= 0) {
+          document.getElementById('quizForm').submit();
+          return;
+        }
+        timeLeft--;
+      }
+
+      setInterval(updateTimer, 1000);
+      showQuestion(0);
+      updateTimer();
+    </script>
   </body>
 </html>
